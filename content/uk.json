@@ -11,7 +11,12 @@
     "onPage": "На цій сторінці",
     "pages": "Сторінки",
     "download": "Завантажити CV",
-    "print": "Друк / PDF"
+    "print": "Друк / PDF",
+    "menu": "Меню",
+    "command": "Пошук",
+    "commandHint": "Перейти на сторінку, секцію або проєкт",
+    "commandEmpty": "Нічого не знайдено.",
+    "commandK": "⌘K"
   },
   "hero": {
     "name": "Михайло Коваленко",
@@ -138,52 +143,70 @@
   "projects": {
     "title": "Портфоліо",
     "intro": "Публічний GitHub: тест-таски, пет-проєкт, практика і конспект. Не місця роботи.",
+    "filters": {
+      "all": "Усі",
+      "task": "Тест-таск",
+      "pet": "Пет",
+      "practice": "Практика",
+      "notes": "Конспект"
+    },
+    "emptyFilter": "У цьому фільтрі немає проєктів.",
+    "stars": "зірок",
+    "updated": "Оновлено",
     "items": [
       {
         "name": "Charlie Quiz (AllRight)",
         "kind": "Тест-таск · Playwright + TypeScript",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/allright-charlie-quiz-e2e",
         "text": "Signup / quiz-воронка. Перевіряю бізнес-результат (юзер створений, trial завершений), а не фіксований клік-шлях. Heuristic walker тримає A/B UI; assert через API + UI. Smoke на PR, outcome-тести окремо."
       },
       {
         "name": "Pananames MCP",
         "kind": "Тест-таск · Playwright + TypeScript",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/pananames-playwright-tests",
         "text": "CRUD контактів і пошук домену → cart TOTAL. Логін один раз через storageState. Page objects і fixtures. Один worker — спільний акаунт і кошик."
       },
       {
         "name": "Playwright examples",
         "kind": "Пет-проєкт · Playwright + TypeScript",
+        "filter": "pet",
         "url": "https://github.com/KovalenkoMykhailo/my-playwright-examples",
         "text": "Пет-сьют: POM, fixtures, UI та API, логін через API. Не комерційний продукт."
       },
       {
         "name": "IT lecture notes",
         "kind": "Конспект · 38 розділів",
+        "filter": "notes",
         "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
         "text": "Навчальні нотатки: мережа/HTTP, тестування і Playwright, Git/Jenkins, SQL і API, Java/JS. Глосарій 250+ термінів. Є на сторінці Конспект."
       },
       {
         "name": "Calculator CLI (Java)",
         "kind": "Тест-таск · Java + JUnit 5 + Maven",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/calculator-project",
         "text": "Тести CLI-калькулятора через echo | bc. Позитивні й негативні кейси: арифметика, float, ділення на нуль, поганий ввід. Запуск Maven; CI в GitHub Actions."
       },
       {
         "name": "Postman collections",
         "kind": "Тест-таски · Postman",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/postman",
         "text": "Колекції Postman з тестових завдань, зокрема TheCatAPI. Запити, перевірки, негативні кейси."
       },
       {
         "name": "practice-js",
         "kind": "Практика · JavaScript",
+        "filter": "practice",
         "url": "https://github.com/KovalenkoMykhailo/practice-js",
         "text": "Задачки JS: LeetCode і Hyperskill. Для розминки перед live-coding, не продукт."
       },
       {
         "name": "example-my-JS-code",
         "kind": "Практика · JavaScript",
+        "filter": "practice",
         "url": "https://github.com/KovalenkoMykhailo/example-my-JS-code",
         "text": "Рання практика JS. Тримую як слід, з чого починав, не як фреймворк."
       }
@@ -195,7 +218,21 @@
     "email": "Email",
     "linkedin": "LinkedIn",
     "telegram": "Telegram",
-    "github": "GitHub"
+    "github": "GitHub",
+    "copy": "Копіювати email",
+    "copied": "Скопійовано",
+    "formTitle": "Написати мені",
+    "formLead": "Повідомлення прийде мені на пошту. Поштовий клієнт не потрібен.",
+    "name": "Ім’я",
+    "emailField": "Ваш email",
+    "message": "Повідомлення",
+    "send": "Надіслати",
+    "sending": "Надсилаю…",
+    "errorName": "Вкажіть ім’я.",
+    "errorEmail": "Вкажіть коректний email.",
+    "errorMessage": "Напишіть повідомлення (мінімум 10 символів).",
+    "errorSend": "Не вдалося надіслати. Напишіть на адресу вище або спробуйте ще раз.",
+    "success": "Дякую. Повідомлення вже летить на мою пошту."
   },
   "footer": "Михайло Коваленко · Senior General QA Engineer"
 }

@@ -2,6 +2,12 @@
   const root = document.documentElement;
   const page = root.dataset.page;
   const base = root.dataset.base || "./";
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || "");
+
+  let chrome = { data: null, site: null, lang: "en" };
+  let paintProjects = () => {};
+  let paintQa = () => {};
+  let toastTimer = 0;
 
   const el = (tag, props, children) => {
     const node = document.createElement(tag);
@@ -22,8 +28,7 @@
     return node;
   };
 
-  const paragraphs = (texts) =>
-    (texts || []).map((text) => el("p", { text }));
+  const paragraphs = (texts) => (texts || []).map((text) => el("p", { text }));
 
   async function loadJson(path) {
     const res = await fetch(base + path);
@@ -73,23 +78,38 @@
   }
 
   function homeHref(hash) {
-    const root = page === "home" ? "./" : base;
-    if (!hash || hash === "top") return root;
-    return root + "#" + hash;
+    const rootPath = page === "home" ? "./" : base;
+    if (!hash || hash === "top") return rootPath;
+    return rootPath + "#" + hash;
   }
 
   function notesHref() {
     return page === "notes" ? "./" : base + "notes/";
   }
 
-  function qaHref() {
-    return page === "qa" ? "./" : base + "qa/";
+  function qaHref(hash) {
+    const path = page === "qa" ? "./" : base + "qa/";
+    return hash ? path + "#" + hash : path;
   }
 
   const CV_SECTIONS = ["top", "experience", "skills", "contact"];
 
   function hashId() {
-    return (location.hash || "").replace("#", "");
+    return decodeURIComponent((location.hash || "").replace("#", ""));
+  }
+
+  function slugify(text) {
+    return String(text || "")
+      .toLowerCase()
+      .replace(/['’]/g, "")
+      .replace(/[^a-z0-9а-яіїєґ]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 72);
+  }
+
+  function qaItemId(item) {
+    if (!item._qid) item._qid = "q-" + (slugify(item.q) || "item");
+    return item._qid;
   }
 
   function setCvNavCurrent(id) {
@@ -125,12 +145,14 @@
 
   function goToCvSection(id, event) {
     if (page !== "home") return;
-    event.preventDefault();
+    if (event) event.preventDefault();
     const node = document.getElementById(id);
     if (!node) return;
+    closeMenu();
     node.scrollIntoView({ behavior: "smooth", block: "start" });
     const path = location.pathname.replace(/index\.html$/, "") || "./";
-    history.pushState(null, "", id === "top" ? path : path + "#" + id);
+    const search = location.search || "";
+    history.pushState(null, "", id === "top" ? path + search : path + search + "#" + id);
     setCvNavCurrent(id);
     highlightSection(id);
   }
@@ -150,7 +172,10 @@
     );
     nodes.forEach((node) => observer.observe(node));
     window.addEventListener("hashchange", scrollToHash);
-    window.addEventListener("popstate", scrollToHash);
+    window.addEventListener("popstate", () => {
+      scrollToHash();
+      paintProjects();
+    });
   }
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -160,8 +185,7 @@
     if (!body || !term) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const cursor = () =>
-      el("span", { class: "cursor", "aria-hidden": "true" });
+    const cursor = () => el("span", { class: "cursor", "aria-hidden": "true" });
 
     async function typeInto(node, text) {
       for (const char of text) {
@@ -228,11 +252,398 @@
     return value;
   }
 
+  function setMenuOpen(open) {
+    document.body.classList.toggle("nav-open", open);
+    const btn = document.querySelector("[data-menu-toggle]");
+    if (btn) btn.setAttribute("aria-expanded", String(open));
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
+  function toggleMenu() {
+    setMenuOpen(!document.body.classList.contains("nav-open"));
+  }
+
+  function showToast(text) {
+    let toast = document.getElementById("site-toast");
+    if (!toast) {
+      toast = el("div", {
+        id: "site-toast",
+        class: "toast",
+        role: "status",
+        "data-testid": "toast",
+      });
+      document.body.append(toast);
+    }
+    toast.textContent = text;
+    toast.classList.remove("is-on");
+    void toast.offsetWidth;
+    toast.classList.add("is-on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("is-on"), 2200);
+  }
+
+  function markCopied(button, okLabel) {
+    if (!button) return;
+    if (!button.dataset.copyLabel) button.dataset.copyLabel = button.textContent;
+    button.textContent = okLabel;
+    button.classList.add("is-copied");
+    clearTimeout(Number(button.dataset.copyTimer));
+    const timer = setTimeout(() => {
+      button.textContent = button.dataset.copyLabel;
+      button.classList.remove("is-copied");
+    }, 2200);
+    button.dataset.copyTimer = String(timer);
+  }
+
+  async function copyText(text, okLabel, button) {
+    const done = okLabel || "Copied";
+    markCopied(button, done);
+    showToast(done);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const box = el("textarea");
+      box.value = text;
+      box.setAttribute("readonly", "");
+      box.style.position = "fixed";
+      box.style.left = "-9999px";
+      document.body.append(box);
+      box.select();
+      document.execCommand("copy");
+      box.remove();
+    }
+  }
+
+  function repoFromUrl(url) {
+    const match = String(url || "").match(/github\.com\/([^/]+)\/([^/#?]+)/i);
+    if (!match) return null;
+    return match[1] + "/" + match[2].replace(/\.git$/, "");
+  }
+
+  async function githubMeta(url) {
+    const repo = repoFromUrl(url);
+    if (!repo) return null;
+    const key = "gh:" + repo;
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      /* ignore quota / private mode */
+    }
+    try {
+      const res = await fetch("https://api.github.com/repos/" + repo);
+      if (!res.ok) return null;
+      const data = await res.json();
+      const meta = {
+        stars: data.stargazers_count,
+        language: data.language,
+        updated: data.pushed_at ? String(data.pushed_at).slice(0, 10) : "",
+      };
+      try {
+        sessionStorage.setItem(key, JSON.stringify(meta));
+      } catch {
+        /* ignore */
+      }
+      return meta;
+    } catch {
+      return null;
+    }
+  }
+
+  async function hydrateGithub(scope, labels) {
+    const nodes = (scope || document).querySelectorAll("[data-repo]");
+    await Promise.all(
+      [...nodes].map(async (node) => {
+        const meta = await githubMeta(node.dataset.repo);
+        if (!meta) {
+          node.remove();
+          return;
+        }
+        const bits = [
+          meta.language,
+          meta.stars ? "★ " + meta.stars : "",
+          meta.updated ? (labels.updated || "Updated") + " " + meta.updated : "",
+        ].filter(Boolean);
+        node.textContent = bits.join(" · ");
+      })
+    );
+  }
+
+  function kindFromUrl() {
+    const kind = new URLSearchParams(location.search).get("kind");
+    if (["task", "pet", "practice", "notes"].includes(kind)) return kind;
+    return "all";
+  }
+
+  function setKind(kind) {
+    const url = new URL(location.href);
+    if (!kind || kind === "all") url.searchParams.delete("kind");
+    else url.searchParams.set("kind", kind);
+    const hash = url.hash && url.hash !== "#top" ? url.hash : "#projects";
+    history.pushState(null, "", url.pathname + url.search + hash);
+    paintProjects();
+    const projects = document.getElementById("projects");
+    if (projects) projects.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function ensureOverlay() {
+    if (document.querySelector(".nav-overlay")) return;
+    document.body.append(
+      el("div", {
+        class: "nav-overlay",
+        "aria-hidden": "true",
+        onPointerDown: (event) => {
+          event.preventDefault();
+          closeMenu();
+        },
+      })
+    );
+  }
+
+  function paletteItems() {
+    const { data, site, lang } = chrome;
+    if (!data) return [];
+    const nav = data.nav;
+    const items = [
+      { id: "home", label: nav.home, hint: "Page", href: homeHref(), section: page === "home" ? "top" : null },
+      { id: "exp", label: nav.experience, hint: "CV", href: homeHref("experience"), section: "experience" },
+      { id: "skills", label: nav.skills, hint: "CV", href: homeHref("skills"), section: "skills" },
+      { id: "contact", label: nav.contacts, hint: "CV", href: homeHref("contact"), section: "contact" },
+      { id: "notes", label: nav.notes, hint: nav.pages || "Pages", href: notesHref() },
+      { id: "qa", label: nav.qa, hint: nav.pages || "Pages", href: qaHref() },
+      {
+        id: "theme-light",
+        label: lang === "uk" ? "Світла тема" : "Light theme",
+        hint: nav.command,
+        run: () => setTheme("light"),
+      },
+      {
+        id: "theme-dark",
+        label: lang === "uk" ? "Темна тема" : "Dark theme",
+        hint: nav.command,
+        run: () => setTheme("dark"),
+      },
+    ];
+    if (hasContact(site && site.pdf)) {
+      items.push({
+        id: "pdf",
+        label: nav.download,
+        hint: "PDF",
+        href: href(site.pdf),
+      });
+    }
+    (data.projects && data.projects.items ? data.projects.items : []).forEach((item) => {
+      items.push({
+        id: "p-" + slugify(item.name),
+        label: item.name,
+        hint: item.kind,
+        href: item.url,
+        external: true,
+      });
+    });
+    (data.groups || []).forEach((group) => {
+      (group.items || []).forEach((item) => {
+        items.push({
+          id: qaItemId(item),
+          label: item.q,
+          hint: group.title,
+          href: qaHref(qaItemId(item)),
+          qaId: qaItemId(item),
+        });
+      });
+    });
+    return items;
+  }
+
+  function runPaletteItem(item) {
+    closePalette();
+    if (!item) return;
+    if (item.run) {
+      item.run();
+      return;
+    }
+    if (item.qaId && page === "qa") {
+      location.hash = item.qaId;
+      paintQa();
+      return;
+    }
+    if (item.section && page === "home") {
+      goToCvSection(item.section);
+      return;
+    }
+    if (item.external && item.href) {
+      window.open(item.href, "_blank", "noreferrer");
+      return;
+    }
+    if (item.href) location.assign(item.href);
+  }
+
+  function closePalette() {
+    const pal = document.getElementById("command-palette");
+    if (!pal) return;
+    pal.hidden = true;
+    document.body.classList.remove("palette-open");
+  }
+
+  function openPalette() {
+    closeMenu();
+    const pal = document.getElementById("command-palette");
+    if (!pal) return;
+    pal.hidden = false;
+    document.body.classList.add("palette-open");
+    const input = pal.querySelector("input");
+    input.value = "";
+    renderPaletteList("");
+    input.focus();
+  }
+
+  function renderPaletteList(query) {
+    const pal = document.getElementById("command-palette");
+    if (!pal) return;
+    const list = pal.querySelector("[data-palette-list]");
+    const empty = pal.querySelector("[data-palette-empty]");
+    const q = (query || "").trim().toLowerCase();
+    const items = paletteItems().filter((item) => {
+      if (!q) return true;
+      return (item.label + " " + (item.hint || "")).toLowerCase().includes(q);
+    });
+    list.replaceChildren();
+    pal.dataset.active = "0";
+    if (!items.length) {
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+    items.forEach((item, index) => {
+      list.append(
+        el("button", {
+          type: "button",
+          class: "palette-item" + (index === 0 ? " is-active" : ""),
+          role: "option",
+          id: "palette-opt-" + index,
+          "aria-selected": index === 0,
+          "data-index": String(index),
+          onMouseEnter: () => setPaletteActive(index),
+          onClick: () => runPaletteItem(item),
+        }, [
+          el("span", { class: "palette-item-label", text: item.label }),
+          item.hint ? el("span", { class: "palette-item-hint", text: item.hint }) : null,
+        ])
+      );
+    });
+    list._items = items;
+  }
+
+  function setPaletteActive(index) {
+    const pal = document.getElementById("command-palette");
+    if (!pal) return;
+    const list = pal.querySelector("[data-palette-list]");
+    const buttons = [...list.querySelectorAll(".palette-item")];
+    if (!buttons.length) return;
+    const next = (index + buttons.length) % buttons.length;
+    pal.dataset.active = String(next);
+    buttons.forEach((btn, i) => {
+      btn.classList.toggle("is-active", i === next);
+      btn.setAttribute("aria-selected", String(i === next));
+    });
+    buttons[next].scrollIntoView({ block: "nearest" });
+  }
+
+  function bindPaletteKeys(input) {
+    input.addEventListener("keydown", (event) => {
+      const pal = document.getElementById("command-palette");
+      const list = pal.querySelector("[data-palette-list]");
+      const items = list._items || [];
+      const active = Number(pal.dataset.active || 0);
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setPaletteActive(active + 1);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setPaletteActive(active - 1);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        runPaletteItem(items[active]);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        closePalette();
+      }
+    });
+  }
+
+  function ensurePalette(nav) {
+    if (document.getElementById("command-palette")) return;
+    const input = el("input", {
+      class: "palette-input",
+      type: "search",
+      "data-testid": "command-input",
+      placeholder: nav.commandHint,
+      "aria-label": nav.command,
+      autocomplete: "off",
+      onInput: (event) => renderPaletteList(event.target.value),
+    });
+    bindPaletteKeys(input);
+    const panel = el("div", { class: "palette-panel", role: "listbox" }, [
+      el("div", { class: "palette-bar" }, [
+        el("span", { class: "palette-prompt", text: "MK:~$" }),
+        input,
+      ]),
+      el("div", { class: "palette-list", "data-palette-list": "true" }),
+      el("p", {
+        class: "palette-empty",
+        "data-palette-empty": "true",
+        hidden: true,
+        text: nav.commandEmpty,
+      }),
+    ]);
+    const pal = el("div", {
+      id: "command-palette",
+      class: "palette",
+      hidden: true,
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": nav.command,
+      "data-testid": "command-palette",
+      onClick: (event) => {
+        if (event.target === pal) closePalette();
+      },
+    }, [panel]);
+    document.body.append(pal);
+  }
+
+  function bindGlobalKeys() {
+    window.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        const pal = document.getElementById("command-palette");
+        if (pal && !pal.hidden) closePalette();
+        else openPalette();
+      } else if (event.key === "Escape") {
+        closePalette();
+        closeMenu();
+      }
+    });
+  }
+
   function renderHeader(nav, site, lang) {
     const pdfReady = hasContact(site.pdf);
     const theme = detectTheme();
     const themeLabel = lang === "uk" ? "Тема" : "Theme";
+    const shortcut = isMac ? "⌘K" : "Ctrl+K";
     const actions = el("div", { class: "header-actions" }, [
+      el("button", {
+        class: "cmd-btn",
+        type: "button",
+        "data-testid": "command-open",
+        "aria-label": nav.command + " " + shortcut,
+        onClick: openPalette,
+      }, [
+        el("span", { class: "cmd-btn-text", text: nav.command }),
+        el("kbd", { text: shortcut }),
+      ]),
       pdfReady
         ? el("a", {
             class: "btn btn-ghost",
@@ -278,13 +689,27 @@
           onClick: () => setLang("en"),
         }),
       ]),
+      el("button", {
+        class: "menu-toggle",
+        type: "button",
+        "data-menu-toggle": "true",
+        "data-testid": "menu-toggle",
+        "aria-expanded": "false",
+        "aria-controls": "site-nav",
+        "aria-label": nav.menu,
+        onClick: toggleMenu,
+      }, [
+        el("span", { class: "menu-toggle-bar", "aria-hidden": "true" }),
+        el("span", { class: "menu-toggle-bar", "aria-hidden": "true" }),
+        el("span", { class: "menu-toggle-bar", "aria-hidden": "true" }),
+      ]),
     ]);
 
     const header = document.getElementById("site-header");
     header.replaceChildren(
       el("div", { class: "header-inner" }, [
         el("a", { class: "brand", href: homeHref(), text: "MK" }),
-        el("nav", { class: "nav", "aria-label": "Main" }, [
+        el("nav", { class: "nav", id: "site-nav", "data-testid": "site-nav", "aria-label": "Main" }, [
           el("div", { class: "nav-group", "aria-label": nav.onPage || "On this page" }, [
             el("a", {
               href: homeHref(),
@@ -319,21 +744,162 @@
               href: notesHref(),
               text: nav.notes,
               "aria-current": page === "notes" ? "page" : null,
+              onClick: closeMenu,
             }),
             el("a", {
               href: qaHref(),
               text: nav.qa,
               "aria-current": page === "qa" ? "page" : null,
+              onClick: closeMenu,
             }),
           ]),
         ]),
         actions,
       ])
     );
+    ensureOverlay();
+    ensurePalette(nav);
+  }
+
+  function renderContactForm(c, site) {
+    if (!hasContact(site.email)) return null;
+    const nameErr = el("p", { class: "field-error", id: "err-name", hidden: true });
+    const emailErr = el("p", { class: "field-error", id: "err-email", hidden: true });
+    const msgErr = el("p", { class: "field-error", id: "err-message", hidden: true });
+    const sendErr = el("p", { class: "field-error", id: "err-send", hidden: true, "data-testid": "form-error" });
+    const success = el("p", {
+      class: "form-success",
+      role: "status",
+      "data-testid": "form-success",
+      hidden: true,
+    });
+    const sendBtn = el("button", { class: "btn btn-primary", type: "submit", text: c.send });
+    const emailOk = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const endpoint =
+      site.formEndpoint || "https://formsubmit.co/ajax/" + encodeURIComponent(site.email);
+
+    const form = el("form", {
+      class: "contact-form",
+      "data-testid": "contact-form",
+      novalidate: true,
+      onSubmit: async (event) => {
+        event.preventDefault();
+        const name = form.elements.name.value.trim();
+        const email = form.elements.email.value.trim();
+        const message = form.elements.message.value.trim();
+        const honey = (form.elements.company && form.elements.company.value) || "";
+        let ok = true;
+        nameErr.hidden = name.length >= 2;
+        if (!nameErr.hidden) {
+          nameErr.textContent = c.errorName;
+          ok = false;
+        }
+        emailErr.hidden = emailOk(email);
+        if (!emailErr.hidden) {
+          emailErr.textContent = c.errorEmail;
+          ok = false;
+        }
+        msgErr.hidden = message.length >= 10;
+        if (!msgErr.hidden) {
+          msgErr.textContent = c.errorMessage;
+          ok = false;
+        }
+        success.hidden = true;
+        sendErr.hidden = true;
+        if (!ok) return;
+        if (honey) {
+          success.textContent = c.success;
+          success.hidden = false;
+          form.reset();
+          return;
+        }
+        sendBtn.disabled = true;
+        sendBtn.textContent = c.sending || "Sending…";
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              message,
+              _subject: "CV site · " + name,
+              _captcha: "false",
+              _template: "table",
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data.success === false || data.success === "false") {
+            throw new Error(data.message || "send failed");
+          }
+          success.textContent = c.success;
+          success.hidden = false;
+          form.reset();
+        } catch {
+          sendErr.textContent = c.errorSend;
+          sendErr.hidden = false;
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = c.send;
+        }
+      },
+    }, [
+      el("h3", { text: c.formTitle }),
+      el("p", { class: "form-lead", text: c.formLead }),
+      el("label", { class: "field" }, [
+        el("span", { text: c.name }),
+        el("input", {
+          name: "name",
+          type: "text",
+          autocomplete: "name",
+          required: true,
+          "aria-describedby": "err-name",
+        }),
+        nameErr,
+      ]),
+      el("label", { class: "field" }, [
+        el("span", { text: c.emailField }),
+        el("input", {
+          name: "email",
+          type: "email",
+          autocomplete: "email",
+          required: true,
+          "aria-describedby": "err-email",
+        }),
+        emailErr,
+      ]),
+      el("label", { class: "hp", "aria-hidden": "true" }, [
+        el("span", { text: "Company" }),
+        el("input", {
+          name: "company",
+          type: "text",
+          tabindex: "-1",
+          autocomplete: "off",
+        }),
+      ]),
+      el("label", { class: "field" }, [
+        el("span", { text: c.message }),
+        el("textarea", {
+          name: "message",
+          rows: "5",
+          required: true,
+          "aria-describedby": "err-message",
+        }),
+        msgErr,
+      ]),
+      sendBtn,
+      sendErr,
+      success,
+    ]);
+    return form;
   }
 
   function renderHome(data, site) {
     const c = data.contact;
+    const p = data.projects;
     const links = [
       ["email", c.email, site.email],
       ["linkedin", c.linkedin, site.linkedin],
@@ -342,6 +908,46 @@
     ].filter(([, , value]) => hasContact(value));
 
     const term = renderTerminal(data.terminal);
+    const list = el("div", { class: "project-list", "data-testid": "project-list" });
+    const filters = p.filters || {};
+    const filterKeys = ["all", "task", "pet", "practice", "notes"];
+
+    paintProjects = () => {
+      const kind = kindFromUrl();
+      document.querySelectorAll("[data-kind-filter]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", String(btn.dataset.kindFilter === kind));
+      });
+      const items = (p.items || []).filter((item) => kind === "all" || item.filter === kind);
+      list.replaceChildren();
+      if (!items.length) {
+        list.append(el("p", { class: "lede", text: p.emptyFilter }));
+        return;
+      }
+      items.forEach((item) => {
+        list.append(
+          el("article", { class: "project", "data-kind": item.filter || "" }, [
+            el("h3", {}, [
+              item.url
+                ? el("a", {
+                    class: "project-link",
+                    href: item.url,
+                    target: "_blank",
+                    rel: "noreferrer",
+                    text: item.name,
+                  })
+                : el("span", { text: item.name }),
+            ]),
+            el("p", { class: "kind", text: item.kind }),
+            item.url
+              ? el("p", { class: "project-meta", "data-repo": item.url })
+              : null,
+            el("p", { text: item.text }),
+          ])
+        );
+      });
+      hydrateGithub(list, p);
+    };
+
     const main = document.getElementById("main");
     main.replaceChildren(
       el("section", { class: "hero", id: "top" }, [
@@ -449,25 +1055,28 @@
         ),
       ]),
       el("section", { id: "projects" }, [
-        el("h2", { text: data.projects.title }),
-        el("p", { class: "lede", text: data.projects.intro }),
-        ...data.projects.items.map((item) =>
-          el("article", { class: "project" }, [
-            el("h3", {}, [
-              item.url
-                ? el("a", {
-                    class: "project-link",
-                    href: item.url,
-                    target: "_blank",
-                    rel: "noreferrer",
-                    text: item.name,
-                  })
-                : el("span", { text: item.name }),
-            ]),
-            el("p", { class: "kind", text: item.kind }),
-            el("p", { text: item.text }),
-          ])
+        el("h2", { text: p.title }),
+        el("p", { class: "lede", text: p.intro }),
+        el(
+          "div",
+          {
+            class: "kind-filters",
+            role: "group",
+            "aria-label": p.title,
+            "data-testid": "project-filters",
+          },
+          filterKeys.map((key) =>
+            el("button", {
+              type: "button",
+              class: "kind-filter",
+              "data-kind-filter": key,
+              "aria-pressed": kindFromUrl() === key,
+              text: filters[key] || key,
+              onClick: () => setKind(key),
+            })
+          )
         ),
+        list,
       ]),
       el("section", { id: "contact" }, [
         el("h2", { text: c.title }),
@@ -475,18 +1084,35 @@
           ? el(
               "div",
               { class: "contacts" },
-              links.map(([type, label, value]) =>
-                el("a", {
+              links.map(([type, label, value]) => {
+                if (type === "email") {
+                  return el("div", { class: "contact-row" }, [
+                    el("a", {
+                      href: contactHref(type, value),
+                      text: value,
+                    }),
+                    el("button", {
+                      class: "copy-btn",
+                      type: "button",
+                      "data-testid": "copy-email",
+                      text: c.copy,
+                      onClick: (event) => copyText(value, c.copied, event.currentTarget),
+                    }),
+                  ]);
+                }
+                return el("a", {
                   href: contactHref(type, value),
-                  text: type === "email" ? value : label,
-                  rel: type === "email" ? null : "noreferrer",
-                  target: type === "email" ? null : "_blank",
-                })
-              )
+                  text: label,
+                  rel: "noreferrer",
+                  target: "_blank",
+                });
+              })
             )
           : el("p", { class: "empty-contacts", text: c.empty }),
+        renderContactForm(c, site),
       ])
     );
+    paintProjects();
     if (term) startTerminal(data.terminal, term);
   }
 
@@ -550,12 +1176,43 @@
   function renderQa(data) {
     const main = document.getElementById("main");
     const list = el("div", { id: "qa-list" });
+    const search = el("input", {
+      class: "filter",
+      type: "search",
+      placeholder: data.searchPlaceholder,
+      "aria-label": data.searchPlaceholder,
+      "data-testid": "qa-search",
+    });
+    let tag = "";
+    (data.groups || []).forEach((group) => {
+      (group.items || []).forEach((item) => qaItemId(item));
+    });
 
-    const paint = (query) => {
-      const q = (query || "").trim().toLowerCase();
+    const openFromHash = () => {
+      const id = hashId();
+      if (!id) return;
+      const group = data.groups.find((g) => g.id === id);
+      if (group) {
+        tag = group.id;
+        return;
+      }
+      const hit = data.groups.some((g) => g.items.some((item) => qaItemId(item) === id));
+      if (hit) {
+        tag = "";
+        search.value = "";
+      }
+    };
+
+    paintQa = () => {
+      openFromHash();
+      const q = (search.value || "").trim().toLowerCase();
+      document.querySelectorAll("[data-qa-tag]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", String(btn.dataset.qaTag === tag));
+      });
       list.replaceChildren();
       let shown = 0;
       data.groups.forEach((group) => {
+        if (tag && group.id !== tag) return;
         const items = group.items.filter((item) => {
           if (!q) return true;
           return (item.q + " " + item.a).toLowerCase().includes(q);
@@ -565,19 +1222,56 @@
         list.append(
           el("section", { class: "qa-group", id: group.id }, [
             el("h2", { text: group.title }),
-            ...items.map((item) =>
-              el("details", {}, [
+            ...items.map((item) => {
+              const id = qaItemId(item);
+              const details = el("details", { id }, [
                 el("summary", { text: item.q }),
-                el("p", { text: item.a }),
-              ])
-            ),
+                el("div", { class: "qa-answer" }, [
+                  el("p", { text: item.a }),
+                  el("button", {
+                    class: "copy-btn",
+                    type: "button",
+                    text: data.copyLink,
+                    onClick: (event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      const url = new URL(location.href);
+                      url.hash = id;
+                      copyText(url.toString(), data.copied, event.currentTarget);
+                    },
+                  }),
+                ]),
+              ]);
+              details.addEventListener("toggle", () => {
+                if (details.open) {
+                  history.replaceState(null, "", "#" + id);
+                }
+              });
+              return details;
+            }),
           ])
         );
       });
       if (!shown) {
         list.append(el("p", { class: "lede", text: data.emptyFilter }));
       }
+      const id = hashId();
+      if (id && id.startsWith("q-")) {
+        const node = document.getElementById(id);
+        if (node && node.tagName === "DETAILS") {
+          node.open = true;
+          node.scrollIntoView({ behavior: "instant", block: "start" });
+        }
+      } else if (id) {
+        const node = document.getElementById(id);
+        if (node) node.scrollIntoView({ behavior: "instant", block: "start" });
+      }
     };
+
+    search.addEventListener("input", () => {
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      paintQa();
+    });
 
     main.replaceChildren(
       el("header", { class: "hero" }, [
@@ -592,16 +1286,42 @@
           }),
         ]),
       ]),
-      el("input", {
-        class: "filter",
-        type: "search",
-        placeholder: data.searchPlaceholder,
-        "aria-label": data.searchPlaceholder,
-        onInput: (event) => paint(event.target.value),
-      }),
+      el(
+        "div",
+        { class: "qa-tags", role: "group", "aria-label": data.title, "data-testid": "qa-tags" },
+        [
+          el("button", {
+            type: "button",
+            class: "kind-filter",
+            "data-qa-tag": "",
+            "aria-pressed": !tag,
+            text: data.allTags,
+            onClick: () => {
+              tag = "";
+              history.replaceState(null, "", location.pathname + location.search);
+              paintQa();
+            },
+          }),
+          ...data.groups.map((group) =>
+            el("button", {
+              type: "button",
+              class: "kind-filter",
+              "data-qa-tag": group.id,
+              text: group.title,
+              onClick: () => {
+                tag = tag === group.id ? "" : group.id;
+                history.replaceState(null, "", tag ? "#" + tag : location.pathname + location.search);
+                paintQa();
+              },
+            })
+          ),
+        ]
+      ),
+      search,
       list
     );
-    paint("");
+    window.addEventListener("hashchange", paintQa);
+    paintQa();
   }
 
   function renderFooter(text) {
@@ -618,12 +1338,14 @@
         loadJson("content/site.json"),
         loadJson(contentFile(lang)),
       ]);
+      chrome = { data, site, lang };
 
       document.title = data.metaTitle;
       const desc = document.querySelector('meta[name="description"]');
       if (desc) desc.setAttribute("content", data.metaDescription);
 
       renderHeader(data.nav, site, lang);
+      bindGlobalKeys();
       if (page === "notes") renderNotes(data);
       else if (page === "qa") renderQa(data);
       else {

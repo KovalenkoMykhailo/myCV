@@ -11,7 +11,12 @@
     "onPage": "On this page",
     "pages": "Pages",
     "download": "Download CV",
-    "print": "Print / Save PDF"
+    "print": "Print / Save PDF",
+    "menu": "Menu",
+    "command": "Search",
+    "commandHint": "Jump to a page, section, or project",
+    "commandEmpty": "Nothing found.",
+    "commandK": "⌘K"
   },
   "hero": {
     "name": "Mykhailo Kovalenko",
@@ -138,52 +143,70 @@
   "projects": {
     "title": "Portfolio",
     "intro": "Public GitHub work: test tasks, a pet project, practice, and lecture notes. Not employment.",
+    "filters": {
+      "all": "All",
+      "task": "Test task",
+      "pet": "Pet",
+      "practice": "Practice",
+      "notes": "Notes"
+    },
+    "emptyFilter": "No projects in this filter.",
+    "stars": "stars",
+    "updated": "Updated",
     "items": [
       {
         "name": "Charlie Quiz (AllRight)",
         "kind": "Test task · Playwright + TypeScript",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/allright-charlie-quiz-e2e",
         "text": "Signup / quiz funnel. I test the business result (user created, trial funnel finished), not a fixed click path. A heuristic walker handles A/B UI; asserts go through API + UI. Smoke on PR, outcome tests separately."
       },
       {
         "name": "Pananames MCP",
         "kind": "Test task · Playwright + TypeScript",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/pananames-playwright-tests",
         "text": "Contacts CRUD and domain search → cart TOTAL. Login once via storageState. Page objects and fixtures. One worker, because the account and cart are shared."
       },
       {
         "name": "Playwright examples",
         "kind": "Pet project · Playwright + TypeScript",
+        "filter": "pet",
         "url": "https://github.com/KovalenkoMykhailo/my-playwright-examples",
         "text": "Pet suite: POM, fixtures, UI and API tests, API login. Not a commercial product."
       },
       {
         "name": "IT lecture notes",
         "kind": "Conspect · 38 sections",
+        "filter": "notes",
         "url": "https://github.com/KovalenkoMykhailo/note-Advanced-web-automation-course",
         "text": "My study notes: networking/HTTP, testing and Playwright, Git/Jenkins, SQL and APIs, Java/JS. Glossary with 250+ terms. Also on the Notes page."
       },
       {
         "name": "Calculator CLI (Java)",
         "kind": "Test task · Java + JUnit 5 + Maven",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/calculator-project",
         "text": "Tests for a CLI calculator via echo | bc. Positive and negative cases: arithmetic, floats, division by zero, bad input. Runs with Maven; GitHub Actions CI."
       },
       {
         "name": "Postman collections",
         "kind": "Test tasks · Postman",
+        "filter": "task",
         "url": "https://github.com/KovalenkoMykhailo/postman",
         "text": "Postman collections from test tasks, including TheCatAPI. Requests, checks, negative cases."
       },
       {
         "name": "practice-js",
         "kind": "Practice · JavaScript",
+        "filter": "practice",
         "url": "https://github.com/KovalenkoMykhailo/practice-js",
         "text": "Small JS tasks: LeetCode and Hyperskill. For live-coding warm-up, not a product."
       },
       {
         "name": "example-my-JS-code",
         "kind": "Practice · JavaScript",
+        "filter": "practice",
         "url": "https://github.com/KovalenkoMykhailo/example-my-JS-code",
         "text": "Early JS practice file. I keep it as a trace of how I started, not as a framework."
       }
@@ -195,7 +218,21 @@
     "email": "Email",
     "linkedin": "LinkedIn",
     "telegram": "Telegram",
-    "github": "GitHub"
+    "github": "GitHub",
+    "copy": "Copy email",
+    "copied": "Copied",
+    "formTitle": "Write to me",
+    "formLead": "The message goes to my email. You do not need a mail app.",
+    "name": "Name",
+    "emailField": "Your email",
+    "message": "Message",
+    "send": "Send",
+    "sending": "Sending…",
+    "errorName": "Enter your name.",
+    "errorEmail": "Enter a valid email.",
+    "errorMessage": "Write a message (at least 10 characters).",
+    "errorSend": "Could not send. Write to the address above, or try again.",
+    "success": "Thanks. The message is on its way to my inbox."
   },
   "footer": "Mykhailo Kovalenko · Senior General QA Engineer"
 }

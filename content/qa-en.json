@@ -11,13 +11,21 @@
     "onPage": "On this page",
     "pages": "Pages",
     "download": "Download CV",
-    "print": "Print / Save PDF"
+    "print": "Print / Save PDF",
+    "menu": "Menu",
+    "command": "Search",
+    "commandHint": "Type a page or a question.",
+    "commandEmpty": "Nothing found.",
+    "commandK": "⌘K"
   },
   "title": "Interview Q&A",
   "badge": "Spoken English answers",
   "intro": "These are answers I can say out loud. Short sentences. Simple words. I keep real tool names: fixtures, storageState, 401. This is not the same English as the CV page.",
   "searchPlaceholder": "Filter questions…",
   "emptyFilter": "No questions match this filter.",
+  "allTags": "All",
+  "copyLink": "Copy link",
+  "copied": "Copied",
   "notesCta": "Back to notes",
   "groups": [
     {
@@ -29,8 +37,16 @@
           "a": "I am a Senior General QA Engineer. I have more than five years in testing. First I was a manual QA. Then I moved to automation. My main tools are TypeScript, Playwright, Postman, SQL and Jenkins. I test UI and API. I also build test frameworks and run tests in CI. I have FinTech experience. I worked on a B2B payment platform in Access and Identity."
         },
         {
+          "q": "Where are you based?",
+          "a": "I am in Ukraine. Dnipro. I work remote. I can relocate."
+        },
+        {
           "q": "Why do you want a new job?",
           "a": "I want a challenging product. I want more impact on automation and QA processes."
+        },
+        {
+          "q": "Why did you leave your last job?",
+          "a": "I left because I was mobilized. Now I am available."
         },
         {
           "q": "Why QA?",
@@ -39,6 +55,30 @@
         {
           "q": "What is your English level?",
           "a": "My English is Intermediate. B1. I can speak about my work. I use short sentences."
+        },
+        {
+          "q": "What does senior mean for you?",
+          "a": "I do not only write tests. I own the QA path: requirements, what to automate, framework, CI, and root cause. I care that the suite is trusted."
+        },
+        {
+          "q": "What is your strongest skill?",
+          "a": "Web and API automation with TypeScript and Playwright. Also QA process: docs, regression, and CI."
+        },
+        {
+          "q": "What is your weakest area?",
+          "a": "Live coding on a whiteboard is my weak part. Real automation work is stronger. I keep solutions simple: arrays, objects, loops, map and filter, async await."
+        },
+        {
+          "q": "Tell me about FRACTAL",
+          "a": "SaaS. I was the process QA. I built QA process, docs, and regression. Then UI and API automation with TypeScript and Playwright. Tests in Jenkins. Localization testing for many languages."
+        },
+        {
+          "q": "Tell me about Clear Junction",
+          "a": "A B2B payment platform. I was in Access and Identity. Clients, accounts, roles and permissions. Web, API, SQL, integrations. I built a Playwright framework and put it in Jenkins."
+        },
+        {
+          "q": "Tell me about RIA.com",
+          "a": "A marketplace. I was the only QA on the team. Web and APIs. I started automation there with Java, Selenium and REST Assured. I used SQL. I also did QA notifications."
         }
       ]
     },
@@ -51,8 +91,16 @@
           "a": "I was the first QA on a project. I built the process, docs, and regression. Then I added automation and CI/CD."
         },
         {
+          "q": "What is shift-left for you?",
+          "a": "I look at requirements early. I ask about unclear cases before coding is done. This stops some bugs. On FRACTAL this was part of my job."
+        },
+        {
           "q": "How do you investigate a bug?",
           "a": "First I reproduce the bug. Then I check logs, API, network and DB. I look for the root cause, not only the bug. I ask a developer if I need help."
+        },
+        {
+          "q": "How do you write a bug report?",
+          "a": "I write steps, expected and actual. I add environment, logs, network or API body if it helps. A good bug is easy to reproduce."
         },
         {
           "q": "How do you work with deadlines?",
@@ -61,6 +109,42 @@
         {
           "q": "How do you communicate with the team?",
           "a": "I write in messenger. If it is complex, I call. I explain clearly with the info people need."
+        },
+        {
+          "q": "How do you work with developers?",
+          "a": "I bring facts: steps, logs, API, DB. I do not only say it is broken. We look at the cause together."
+        },
+        {
+          "q": "How do you plan testing?",
+          "a": "I look at risk and what can break users. Smoke first. Then critical flows. Then extra cases if there is time."
+        },
+        {
+          "q": "Regression vs retest?",
+          "a": "Retest checks the fix. Regression checks that old flows still work. Automation helps regression stay short."
+        },
+        {
+          "q": "What test design do you use?",
+          "a": "Equivalence partitioning and boundary values. Also decision tables, state transition, pairwise, and edge cases. I pick the method for the risk."
+        },
+        {
+          "q": "Risk-based testing?",
+          "a": "I test first what hurts users or money or access. Low risk can wait. This helps with deadlines."
+        },
+        {
+          "q": "Exploratory testing?",
+          "a": "Yes. I explore when the spec is thin or the UI is new. I still write down what I found."
+        },
+        {
+          "q": "Did you test localization?",
+          "a": "Yes. At FRACTAL I did localization and manual checks for many languages."
+        },
+        {
+          "q": "How do you decide manual vs auto?",
+          "a": "If the flow is stable and we run it often, I automate. If it is a one-time check or a very new UI, I test manual first."
+        },
+        {
+          "q": "What is a good test case?",
+          "a": "It has a clear goal, preconditions, steps, and expected result. It is easy for another QA to run."
         }
       ]
     },
@@ -73,20 +157,120 @@
           "a": "Now I use TypeScript and Playwright. I test UI and API. I use POM. Tests run in Jenkins. I use Allure for reports. At RIA.com I used Java, Selenium and Maven."
         },
         {
+          "q": "Why Playwright now, not Selenium?",
+          "a": "Playwright is my current work stack. Auto-wait is better. I can do UI and API in one tool. I still know Selenium from RIA.com."
+        },
+        {
           "q": "How do you build a test framework?",
-          "a": "I build a framework with TypeScript, Playwright, OOP and POM. Tests run in Jenkins. I use Allure for reports. At Clear Junction I built the framework from scratch."
+          "a": "TypeScript, Playwright, OOP and POM. Fixtures for setup. Tests in Jenkins. Allure for reports. At Clear Junction I built the framework from scratch."
+        },
+        {
+          "q": "What is POM?",
+          "a": "Page Object Model. Locators and actions live in the page class. The test calls the page. If the UI changes, I fix one page, not every test."
+        },
+        {
+          "q": "What are fixtures?",
+          "a": "Fixtures give a ready context to the test. Browser, page, logged user. I do not copy setup in every test."
+        },
+        {
+          "q": "What is storageState?",
+          "a": "I log in once. I save cookies and local storage. Next tests start already logged in. This makes the suite faster and more stable."
+        },
+        {
+          "q": "How do you handle login in tests?",
+          "a": "I prefer login once with storageState or API login. I do not click the login form in every test if I can avoid it."
+        },
+        {
+          "q": "How do you choose locators?",
+          "a": "I like role, label, and test id. I avoid long CSS and nth. The locator must stay after a small UI change."
+        },
+        {
+          "q": "Do you use getByRole?",
+          "a": "Yes. Role and name are close to how a user sees the page. If there is no good role, I use a test id."
+        },
+        {
+          "q": "Hard waits? sleep?",
+          "a": "I do not like sleep. I wait for the element or the response. Sleep hides the real problem and makes tests slow."
         },
         {
           "q": "What do you automate?",
-          "a": "I automate stable and important flows. The test must work in CI."
+          "a": "Stable and important flows. Regression. Critical UI and API paths. Repeated setup. The test must work in CI."
+        },
+        {
+          "q": "What do you not automate?",
+          "a": "I do not automate a flow that changes every day. I do not automate a one-time check. First I ask: will CI run this next month?"
+        },
+        {
+          "q": "UI test vs API test?",
+          "a": "API is faster and more stable for business rules. UI is for the user path. I like both. Sometimes I assert through API after a UI step."
+        },
+        {
+          "q": "How do you test API in Playwright?",
+          "a": "I use APIRequest. I send the request. I check status, headers and body. I can also log in by API."
+        },
+        {
+          "q": "What is a good assertion?",
+          "a": "It checks the business result. User created. Status 201. Total in cart. Not only that a button was clicked."
         },
         {
           "q": "How do you work with flaky tests?",
-          "a": "I check locators, timing, test data and the environment. I look for the real cause."
+          "a": "I check locators, timing, test data and the environment. I look at the trace. I look for the real cause. I do not add a wait and hope."
+        },
+        {
+          "q": "How do you debug a failed test?",
+          "a": "I open the trace, screenshot, and error. I check network and API. I run the test locally. Then I fix locator, data, or the wait."
+        },
+        {
+          "q": "Parallel tests?",
+          "a": "Yes, when tests do not share data. If the account or cart is shared, I use one worker. I did this in a Playwright test task."
+        },
+        {
+          "q": "Frames and cookies?",
+          "a": "I can work with frames and with cookies. storageState also keeps cookies. I use this for auth."
+        },
+        {
+          "q": "Test data?",
+          "a": "I need data I can control. I create it by API or SQL when I can. Shared dirty data makes tests flaky."
+        },
+        {
+          "q": "Smoke vs full regression in automation?",
+          "a": "Smoke is small and fast. It runs on a pull request. Full regression can run at night. I used this idea with Jenkins jobs."
+        },
+        {
+          "q": "What Jenkins jobs did you use?",
+          "a": "Merge request checks. Branch jobs. Nightly. The job should fail the pipeline if critical tests fail."
+        },
+        {
+          "q": "Allure — what do you look at?",
+          "a": "I look which test failed and why. I look at steps, attachments, and if it is a product bug or a test bug."
+        },
+        {
+          "q": "OOP in tests?",
+          "a": "Yes. Page classes, fixtures, small helpers. The test file should read like a story, not like a big script."
+        },
+        {
+          "q": "Page vs fixture vs helper?",
+          "a": "Page holds locators and UI actions. Fixture holds setup. Helper is a small shared function. I keep them separate so the suite stays clear."
+        },
+        {
+          "q": "How do you review generated tests?",
+          "a": "I read locators, waits, and asserts. I check if the test matches the risk. I never merge AI code without reading it."
         },
         {
           "q": "Do you use AI in QA?",
-          "a": "I use Cursor every day. I read all generated code."
+          "a": "I use Cursor every day. I read all generated code. I use it to refactor tests, debug failures, search for cases, and draft test docs. I still own locators, waits and asserts."
+        },
+        {
+          "q": "Java Selenium vs Playwright — what changed?",
+          "a": "At RIA.com I used Java, Selenium and Maven. Now at work I use TypeScript and Playwright. The idea is the same: stable locators, POM, CI. The tool is different."
+        },
+        {
+          "q": "Is Charlie Quiz a job?",
+          "a": "No. It is a test task. Playwright and TypeScript. I check the business result, not a fixed click path. I keep it in my GitHub portfolio."
+        },
+        {
+          "q": "How do you test UI that changes a lot?",
+          "a": "I assert the result, not one click path. In a test task I used a heuristic walker for A/B UI. At work I prefer stable locators and API checks."
         }
       ]
     },
@@ -99,20 +283,68 @@
           "a": "I use Postman and Playwright API. I check status codes, headers and auth. I also do negative cases. Sometimes I check API data with DB."
         },
         {
+          "q": "401 vs 403?",
+          "a": "401 means no auth. The token is missing or bad. 403 means you are logged in, but you have no permission. I test both."
+        },
+        {
+          "q": "How do you test auth?",
+          "a": "I check login, token or cookie, expired session, and no token. I check that a closed API returns 401 or 403."
+        },
+        {
+          "q": "Negative API cases?",
+          "a": "Bad body. Missing field. Wrong type. No auth. No permission. I check the status and the error body."
+        },
+        {
+          "q": "Postman vs Playwright API?",
+          "a": "Postman is good to explore and to share a collection. Playwright API is good in CI next to UI tests. I use both. I also used Newman."
+        },
+        {
+          "q": "REST Assured?",
+          "a": "Yes, in my Java time. Together with Selenium at RIA.com. Now I use Playwright API more."
+        },
+        {
           "q": "What about SQL?",
-          "a": "I use SQL as a QA. I check data, prepare test data and investigate bugs."
+          "a": "I use SQL as a QA. I check data, prepare test data and investigate bugs. Joins, filters, aggregation. I am not a DBA."
+        },
+        {
+          "q": "API vs DB check?",
+          "a": "If the API says the user is created, I can check the row in DB. If they do not match, I have a real bug."
         },
         {
           "q": "What CI tools did you use?",
           "a": "I use Jenkins, GitLab CI and GitHub Actions. I work with Git every day: branches, PRs and review."
         },
         {
+          "q": "Git: rebase, conflicts?",
+          "a": "Yes. I use branches and PRs. If there is a conflict, I resolve it and check tests still run."
+        },
+        {
+          "q": "What do you put in a PR?",
+          "a": "A short why. What I tested. If tests are in CI, the job should be green."
+        },
+        {
           "q": "Do you have FinTech experience?",
-          "a": "Yes. I worked on a B2B payment platform. I tested Access and Identity: clients, accounts, roles and permissions. I also tested APIs and integrations."
+          "a": "Yes. I worked on a B2B payment platform. I tested Access and Identity: clients, accounts, roles and permissions. I also tested APIs and integrations. I am not a payment-provider-flow specialist."
+        },
+        {
+          "q": "Integrations?",
+          "a": "Yes. I tested how services talk: API, webhooks-style flows, and data in DB. I check status and the final state."
+        },
+        {
+          "q": "Logs and monitoring?",
+          "a": "I used logs and tools like Grafana, Kibana, Datadog, Prometheus. I use them to find why a test or a bug happened."
         },
         {
           "q": "Do you do mobile automation?",
-          "a": "I did functional testing on mobile, for example registration."
+          "a": "I did functional testing on mobile, for example registration. I am not a mobile automation specialist. I do not claim Appium."
+        },
+        {
+          "q": "GraphQL? Kafka? Docker in production?",
+          "a": "I do not have strong commercial experience with GraphQL, Kafka, or Docker as a main duty. I have study notes. My work CI was Jenkins."
+        },
+        {
+          "q": "Performance testing?",
+          "a": "I am not a performance specialist. I watch response times in API and monitoring. Load testing is not my main skill."
         }
       ]
     },
@@ -133,12 +365,48 @@
           "a": "200 is OK. 201 is created. 400 is bad request. 401 is no auth. 403 is no permission. 404 is not found. 500 is server error. I check the code and the body. I keep a full list in my glossary."
         },
         {
-          "q": "Do you know Docker and Kubernetes?",
-          "a": "I have study notes on Docker and Kubernetes. My CI at work was Jenkins."
+          "q": "GET vs POST vs PUT vs PATCH vs DELETE?",
+          "a": "GET reads. POST creates. PUT replaces. PATCH updates a part. DELETE removes. I check the method and if the data changed."
+        },
+        {
+          "q": "What is idempotent?",
+          "a": "You can call it again and the result stays the same. GET is idempotent. POST often is not. I think about this in API tests."
+        },
+        {
+          "q": "Cookie vs localStorage vs session?",
+          "a": "Cookie can go to the server. localStorage stays in the browser. Session storage dies with the tab. storageState can save cookies and storage for tests."
+        },
+        {
+          "q": "What is STLC?",
+          "a": "The test life cycle: plan, cases, run, report, close. I also work in Agile: sprint, risk, and fast feedback."
+        },
+        {
+          "q": "Smoke vs sanity?",
+          "a": "Smoke is a short check that the build works. Sanity is a short check of one change. I keep smoke small so CI is fast."
+        },
+        {
+          "q": "EP and BVA?",
+          "a": "Equivalence partitioning: I pick one value from a group. Boundary value: I test the edge, like min and max. I use this for forms and API fields."
+        },
+        {
+          "q": "Decision table? state transition?",
+          "a": "Decision table is for many rules together. State transition is for status flows. I use them when if-else in the product is complex."
         },
         {
           "q": "What is mock and stub?",
           "a": "A stub gives a ready answer. A mock also checks how you call it. I use this idea when API or UI is not ready. I wrote this in my testing notes."
+        },
+        {
+          "q": "Do you know Docker and Kubernetes?",
+          "a": "I have study notes on Docker and Kubernetes. My CI at work was Jenkins. I do not claim K8s as a commercial duty."
+        },
+        {
+          "q": "What is a flake?",
+          "a": "A test that fails and then passes with no product change. The cause is often locator, timing, data, or the environment."
+        },
+        {
+          "q": "What is a test pyramid for you?",
+          "a": "More fast API and unit-like checks. Fewer slow UI E2E. E2E still needed for the user path. I do not only write UI tests."
         }
       ]
     },
@@ -149,6 +417,34 @@
         {
           "q": "What do you usually ask a recruiter?",
           "a": "I ask about the QA team size. I ask how many people do manual tests and how many do automation. I ask if there is a QA Lead. I ask how QA works with developers. I ask about automation coverage. I ask what they expect in the first one to three months. I ask about the interview steps. I ask about English. I ask how much time is manual and how much is automation."
+        },
+        {
+          "q": "QA team and lead?",
+          "a": "I ask how big is QA. Who is the QA Lead. Who reviews test PRs."
+        },
+        {
+          "q": "What stack does the team use?",
+          "a": "I ask if they use Playwright or Selenium. TypeScript or Java. This helps me see if I fit."
+        },
+        {
+          "q": "Automation coverage?",
+          "a": "I ask what is already automated. What is still manual. What they want in three months."
+        },
+        {
+          "q": "How do you work with developers?",
+          "a": "I ask if QA joins planning. If we see PRs early. Shift-left needs this."
+        },
+        {
+          "q": "Interview process?",
+          "a": "I ask how many steps. Is there live coding. Is there a test task. I say live coding is my weaker part. I am honest."
+        },
+        {
+          "q": "English on the job?",
+          "a": "I ask if daily English is needed. My level is B1. I can speak about work in short sentences."
+        },
+        {
+          "q": "Remote?",
+          "a": "I prefer remote. I can relocate. I ask about the format of the team."
         }
       ]
     }

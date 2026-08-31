@@ -11,7 +11,12 @@
     "onPage": "On this page",
     "pages": "Pages",
     "download": "Download CV",
-    "print": "Print / Save PDF"
+    "print": "Print / Save PDF",
+    "menu": "Menu",
+    "command": "Search",
+    "commandHint": "Jump to a page or section",
+    "commandEmpty": "Nothing found.",
+    "commandK": "⌘K"
   },
   "title": "Notes",
   "intro": "Short interview notes live here. The full conspect is on GitHub: 38 sections, glossary, learning paths.",
@@ -74,7 +79,7 @@
         "Interview prep around Playwright: fixtures, storageState, APIRequest, locators that stay stable, why a test is flaky.",
         "How to explain a framework and Jenkins jobs (merge request, branch, nightly) in a clear way.",
         "Spoken English for work answers. My level is Intermediate / B1. I say that honestly.",
-        "SQL and API checks for defect investigation.",
+        "SQL and API checks for defect investigation."
       ]
     },
     {
@@ -96,8 +101,12 @@
     {
       "title": "How I use Cursor",
       "paragraphs": [
-        "I use Cursor every day. I read generated code before I merge.",
-        "AI helps with boilerplate and first drafts. I still own locators, waits, test data, and whether the assertion matches the real risk."
+        "I use Cursor every day in automation work. It is a speed tool, not the owner of the test. I read every generated change before I merge: locators, waits, test data, and whether the assertion hits a real risk.",
+        "Refactoring: I use it to extract page objects, fixtures, and helpers, and to kill duplicated locators. The draft can come from the agent. I still check that the POM public API stays clear and that tests assert the same thing as before.",
+        "Debugging: I paste a Playwright trace, a CI log, a network call, or an API body and ask for hypotheses. I do not accept “add a wait” as a fix. I confirm the cause in DevTools, the API response, or SQL, then change the locator, the data, or the environment.",
+        "Ideas and artifacts: I brainstorm coverage gaps, negative API cases, and EP / BVA edges. I also get first drafts of test cases, checklists, bug reports, test-plan outlines, and RCA notes. I edit them before they go to the team.",
+        "Reports: from Allure or a Jenkins run I ask for a short failure grouping — flake vs product vs test data — then I write the note the team can act on.",
+        "How I keep it useful: project rules so new tests follow our POM and fixtures, not a generic Playwright sample. Boilerplate for a page, a fixture, APIRequest, or storageState is fine. I reject brittle CSS and “self-healing” locators. Stable roles, labels, and test ids stay my decision. I also turn a manual checklist into an automation outline, then I choose what is worth putting in CI."
       ]
     }
   ],
